@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text.Json;
 using CsvHelper;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ThirdPartyFileIO
 {
@@ -10,6 +13,7 @@ namespace ThirdPartyFileIO
     {
         static List<Person> list = null;
         static string path = @"C:\Users\Piyush\Desktop\C# Programs\ThirdPartyFileIO\CsvFile.csv";
+        static string jsonPath = @"C:\Users\Piyush\Desktop\C# Programs\ThirdPartyFileIO\JsonFile.json";
 
         static void Main(string[] args)
         {
@@ -20,10 +24,86 @@ namespace ThirdPartyFileIO
                 new Person{Id=2,Name ="kaile",Email="kaile@gmail.com"}
             };
 
-            //Calling methods
-            InsertingData();
-            ReadingData();
+            //Calling methods for CSV file operations
+            //InsertingData();
+            //ReadingData();
+
+            //InsertDataToJson();
+            //ReadDataFromJson();
+
+            // Write the data to a JSON file
+            WriteJsonToFile(jsonPath, list);
+            // Read the data back from the JSON file
+            var loadedPerson = ReadJsonFromFile(jsonPath);
+            foreach (var person in loadedPerson)
+            {
+                Console.WriteLine($"Id: {person.Id}, Name: {person.Name}, Email: {person.Email}");
+            }
         }
+
+        public static void WriteJsonToFile(string filePath, List<Person> products)
+        {
+            // Serialize the products list to JSON format, with indented formatting for readability
+            string json = JsonSerializer.Serialize(products, new JsonSerializerOptions { WriteIndented = true });
+
+            // Write the serialized JSON string to the specified file path
+            File.WriteAllText(filePath, json);
+
+            Console.WriteLine("Data added successfully!");
+        }
+
+        public static List<Person> ReadJsonFromFile(string filePath)
+        {
+            // Read all text from the file, which contains the JSON data
+            string json = File.ReadAllText(filePath);
+
+            // Deserialize the JSON string back into a list of Person objects and return it
+            return JsonSerializer.Deserialize<List<Person>>(json);
+        }
+
+
+        public static void ReadDataFromJson()
+        {
+            // Check if the file exists before attempting to read
+            if (File.Exists(jsonPath))
+            {
+                string json = File.ReadAllText(jsonPath);
+
+                //Converts a JSON string back into an object(or collection of objects).
+                var deserialized = JsonConvert.DeserializeObject<List<Person>>(json);
+                foreach (var record in deserialized)
+                {
+                    Console.WriteLine($"Id: {record.Id}, Name: {record.Name}, Email: {record.Email}");
+                }
+            }
+            else
+            {
+                // Inform the user that the file does not exist
+                Console.WriteLine("File doesn't exists!");
+                return;
+            }
+        }
+
+        public static void InsertDataToJson()
+        {
+            if (File.Exists(jsonPath))
+            {
+                Console.WriteLine("File already created!");
+            }
+            else
+            {
+                // Create a new file if it does not exist
+                // Dispose ensures the file handle is immediately closed after creation
+                File.Create(jsonPath).Dispose();
+                Console.WriteLine("File created");
+            }
+            //Converts an object or a collection(like a List<Person>) into a JSON string
+            //To save data, you convert the Product objects into JSON format and write them to a file.
+            string json = JsonConvert.SerializeObject(list, Formatting.Indented);
+            File.WriteAllText(jsonPath, json);
+            Console.WriteLine("Json data added!!");
+        }
+
         public static void InsertingData()
         {
             // Check if the file already exists at the specified path
